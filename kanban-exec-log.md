@@ -53,3 +53,19 @@
 - 评估 Dify 贡献机会
 - 修复 autogen #5566 (UTF-8 encoding)
 - 签署 autogen CLA
+
+## 2026-05-14 15:45 (Session — t_c547ee6b)
+- **t_c547ee6b** → 任务发现防重复机制
+  - 在 kanban_db.py 中实现 find_similar_tasks() 函数
+  - 5 分钟窗口内检测相同/近似标题的活跃任务
+  - 防止并行 worker 创建重复任务
+
+## 2026-05-14 16:00 (仓库维护 — t_4224a4ac)
+### PR 状态快照
+- **redis/redis-vl-python #613**: OPEN, REVIEW_REQUIRED, CI 全通过 (Cursor Bugbot ✅, Jit Security ✅), 等待维护者 review
+- **microsoft/autogen #7694**: OPEN, REVIEW_REQUIRED, CLA 同意评论已发但 bot 仍未响应 (无 CLA 标签), 等待
+- **NousResearch/hermes-agent #25677**: CLOSED (duplicate) — 已清理
+
+### 看板健康
+- 复盘循环任务持续运行，PR 状态无重大变化
+- 活跃 PR 从 3 个减至 2 个（hermes-agent #25677 已关闭）
