@@ -80,3 +80,15 @@
 - 所有 PR 自上次更新（16:00）以来无变化
 - 复盘循环持续运行中
 - 仓库日志已同步
+
+## 2026-05-14 15:03 (仓库维护 — t_998f2973)
+### PR 状态快照
+- **redis/redis-vl-python #613**: OPEN, mergeable=true, mergeable_state=blocked, CI 全过, 仅 Jit bot 评论, 等待维护者 review
+- **microsoft/autogen #7694**: OPEN, REVIEW_REQUIRED, CLA 同意已发但 bot 仍未响应, 无新评论
+- **NousResearch/hermes-agent #25745**: OPEN, mergeable=true, mergeable_state=unstable (从 unknown 变化), 0 comments, 等待 review
+
+### 变化
+- #25745 mergeable_state: unknown → unstable (CI 可能有不稳定测试)
+- #613 mergeable=true 确认，但 mergeable_state 仍为 blocked
+- 所有 PR 无新维护者评论/反馈
+- 复盘循环和看板健康正常运行
