@@ -1,0 +1,38 @@
+[
+  {
+    "pr_number": "613",
+    "repo": "redis/redis-vl-python",
+    "title": "perf: replace DELETE with UNLINK in EmbeddingsCache for better memory management",
+    "state": "open",
+    "new_comments": [
+      {
+        "id": 4450757202,
+        "user": "jit-ci[bot]",
+        "type": "issue_comment",
+        "body": "Hi, I'm **Jit**, a friendly security platform designed to help developers build secure applications from day zero with an [MVS](https://www.jit.io/) (Minimal viable security) mindset.\n\nIn case there are security findings, they will be communicated to you as a comment inside the PR.\n\nHope you'll enjoy using Jit.\n\nQuestions? Comments? Want to learn more? [Get in touch with us](https://www.jit.io/contact).",
+        "created_at": "2026-05-14T12:42:16Z",
+        "updated_at": "2026-05-14T12:42:16Z"
+      }
+    ],
+    "needs_reply": false,
+    "reply_reason": "jit-ci[bot] 是安全扫描机器人，仅发送通用欢迎消息，无具体安全发现，无需回复"
+  },
+  {
+    "pr_number": "25677",
+    "repo": "NousResearch/hermes-agent",
+    "title": "feat: add reference_image_path support to image_generate tool",
+    "state": "open",
+    "new_comments": [
+      {
+        "id": 4450720894,
+        "user": "alt-glitch",
+        "type": "issue_comment",
+        "body": "Duplicate of #18805. Multiple PRs already implement reference image support for image_generate: #18805, #21854, #21570, #15308, #21463. The canonical issue is #21562.",
+        "created_at": "2026-05-14T12:38:24Z",
+        "updated_at": "2026-05-14T12:38:24Z"
+      }
+    ],
+    "needs_reply": true,
+    "reply_reason": "alt-glitch 指出该 PR 与 #18805 等 PR 重复，需要回复说明本 PR 的独特性，或确认是否可以关闭。建议回复：1）如果实现方式不同，解释差异；2）如果确实重复，礼貌关闭并感谢 reviewer"
+  }
+]
