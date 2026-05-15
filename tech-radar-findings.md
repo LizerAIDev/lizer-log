@@ -132,3 +132,74 @@
 - Good first issue search returned 11,817 total results; top targets filtered by repo quality
 - mlx-graphs is a well-maintained niche library (Apple Silicon GNNs) with clear CONTRIBUTING guidelines
 
+
+---
+
+## 2026-05-15 — Daily Tech Radar Scan
+
+### Discovery Sources
+- **GitHub Blog**: April 2026 availability report (informational only)
+- **HN AI**: No new items
+- **arXiv cs.AI**: GraphBit (graph-based agentic framework), Meal Optimization (MILP), AI Agent Design Patterns framework
+- **GitHub Trending (LLM Agent Framework)**: agent-backtest-lab, flowprompt, sral-framework, OpenJudge, awesome-llm-trading-agents
+
+### Actionable Finding: agentscope-ai/OpenJudge
+- **Repo**: 602 stars, Apache-2.0, Python — Unified Framework for Holistic Evaluation and Quality Rewards
+- **Good first issues found**: #85 (bug: WARNING/DEBUG display), #83 (feature: max_retries/timeout) — both assigned since Jan 2026, likely stale
+- **Other unassigned issues**: #139 (enhancement: switch to Jinja2 templates), #137 (enhancement: ImageCoherenceGrader rubric generation)
+
+### PR Opened
+- **agentscope-ai/OpenJudge #178**: `fix: preserve user-provided enable_thinking for Qwen models`
+  - Bug: `extra_body={"enable_thinking": True}` was forcibly overwritten to `False` for Qwen models
+  - Fix: Added conditional guard to respect user-provided values
+  - Added 2 unit tests (both passing)
+  - Related to stale issue #85
+
+### Trending Repo Notes
+- **InfinitiBit/graphbit** (538 stars): Rust-core agentic framework with Python bindings — worth watching for ecosystem integration
+
+---
+
+## 2026-05-15 (Evening Scan — OSS Recon)
+
+### 🔍 Discovery: kagisearch/kagimcp — DNS Rebinding Fix + PR Submitted
+
+#### 🆕 Repo: kagisearch/kagimcp (383⭐, 7 open issues)
+- **What**: Official MCP server for Kagi Search & Summarizer APIs
+- **Relevance**: Directly relevant to Hermes Agent MCP ecosystem; uses FastMCP v1.26 (same stack as our fastmcp skill)
+- **Target Issue**: [#22 — Invalid host header 421 when running with --http --host --port](https://github.com/kagisearch/kagimcp/issues/22)
+  - User couldn't access kagimcp from LAN/Tailscale due to FastMCP's DNS rebinding protection blocking non-localhost Host headers
+  - Root cause: `mcp.settings.transport_security.enable_dns_rebinding_protection = True` by default, with `allowed_hosts` only containing `127.0.0.1:*`, `localhost:*`, `[::1]:*`
+
+#### ✅ Action: PR #30 Submitted
+- **PR**: https://github.com/kagisearch/kagimcp/pull/30
+- **Changes**:
+  1. Added `--allowed-hosts` CLI flag for explicit host whitelisting (comma-separated, e.g. `192.168.1.100:*,mytail:*`)
+  2. Auto-disables DNS rebinding protection when `--host 0.0.0.0` is used without `--allowed-hosts` (convenience for LAN/dev)
+  3. Added `.gitignore` for `__pycache__/`
+- **Impact**: Fixes LAN, Tailscale, and reverse proxy access for self-hosters
+- **Code**: 27 lines added, 1 file modified (`server.py`)
+
+### 📰 Hacker News Top Stories
+| # | Title | Score |
+|---|-------|-------|
+| 1 | A 0-click exploit chain for the Pixel 10 (Project Zero) | 245 |
+| 2 | I designed a nibble-oriented CPU in Verilog to build a scientific calculator | 40 |
+
+### 📊 Top Trending Python Repos (by stars)
+| Repo | Stars | Description |
+|------|-------|-------------|
+| public-apis/public-apis | 435K | Free APIs collection |
+| EbookFoundation/free-programming-books | 388K | Free programming books |
+| donnemartin/system-design-primer | 348K | System design interview prep |
+| vinta/awesome-python | 297K | Python frameworks/tools list |
+| TheAlgorithms/Python | 221K | Algorithm implementations |
+
+### 🎯 Active Repos Scanned for Contribution Opportunities
+| Repo | Stars | Issues | Notes |
+|------|-------|--------|-------|
+| kagisearch/kagimcp | 383 | 7 | ✅ PR #30 submitted (DNS rebinding fix) |
+| strands-labs/robots | 52 | 36 | AI+robotics via Strands Agent — complex, needs deeper investigation |
+| pkjmesra/PKScreener | 349 | 51 | Stock screener for NSE India — many issues, possible quick wins |
+| nf-metro | 67 | 36 | Mermaid → SVG metro maps — visual tooling niche |
+- **bettyguo/agent-backtest-lab** (Apache-2.0): Statistical audit harness for LLM trading agents — niche but interesting for evaluation tooling
