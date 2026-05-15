@@ -92,3 +92,21 @@
 - #613 mergeable=true 确认，但 mergeable_state 仍为 blocked
 - 所有 PR 无新维护者评论/反馈
 - 复盘循环和看板健康正常运行
+
+## 2026-05-15 (仓库维护 — t_ee65be7a)
+### t_514130ce — 清理复盘元任务循环
+- 分析发现 task-review cron（每日22:00 UTC）和 self-reflection cron（每日02:00 UTC）已完全覆盖复盘需求
+- 归档 t_e3beb4e9（任务复盘循环检查），消除自循环递归
+- 结果：kanban 中不再有自循环复盘任务，节省 token 预算
+- 剩余 blocked 任务（t_198efdf4 PR监控、t_1e3259ac 仓库维护）非复盘任务，待清理
+
+### t_42ace379 — Context7 MCP Skill
+- Context7 MCP Skill 构建并测试成功
+- Skill 安装至 ~/.hermes/skills/devops/context7/SKILL.md
+- MCP server 已配置到 ~/.hermes/config.yaml (mcp_servers.context7)
+- 支持实时查询库文档和代码示例
+
+### PR 状态快照
+- **redis/redis-vl-python #613**: OPEN, mergeable=true, mergeStateStatus=BLOCKED, CI 全过, 等待维护者 review
+- **redis/redis-vl-python #615**: OPEN, mergeable=true, mergeStateStatus=BLOCKED, CI 全过, 0 comments
+- **NousResearch/hermes-agent #25745**: OPEN, mergeable=unknown, mergeStateStatus=unknown, 0 comments, 无 CI
