@@ -5,6 +5,49 @@
 
 ---
 
+## 2026-05-15
+
+### 🔧 API Ecosystem Scan — Watcher Bug Fix + Context7 MCP Discovery
+
+#### Bug Fixed: `watch_http_json.py` dotted `--id-field` path support
+- **Problem**: The `api-mcp-servers` watcher used `--id-field package.name` but `item.get()` doesn't support dotted paths. All IDs resolved to `None` → watcher silently tracked nothing despite running for days.
+- **Fix**: Added `_resolve_id()` helper that splits dotted keys and traverses nested dicts. Patched `watch_http_json.py`.
+- **Result**: Watcher now correctly tracks 10 MCP server packages from npm registry.
+
+#### 🆕 Discovery: Context7 MCP Server (@upstash/context7-mcp)
+- **Stats**: 55,320⭐ GitHub stars, actively maintained (last push: 2026-05-13)
+- **Version**: v2.2.5 (latest)
+- **Protocol**: MCP 2025-03-26, supports both stdio and HTTP transport
+- **Tools exposed**:
+  - `resolve-library-id` — Maps library name → Context7-compatible ID
+  - `query-docs` — Queries up-to-date docs + code examples for any library
+- **Live test**: Resolved `redis-py` → 1755 code snippets, benchmark score 87.67, latest version v6.4.0
+- **Value for Hermes**: Real-time access to library documentation that surpasses training data cutoff. Directly enhances coding agent capabilities for PR reviews, skill development, and issue triage.
+
+#### 📋 Other MCP Servers Scanned (20 total from npm):
+| Package | Version | Notes |
+|---------|---------|-------|
+| @upstash/context7-mcp | v2.2.5 | ⭐ BEST FIT — code docs for coding agents |
+| @apify/actors-mcp-server | v0.10.4 | Web scraping/automation platform |
+| @notionhq/notion-mcp-server | v2.2.1 | Notion API integration |
+| @sentry/mcp-server | v0.33.0 | Error monitoring, useful for debugging |
+| chrome-devtools-mcp | v0.26.0 | Browser automation/testing |
+| @modelcontextprotocol/server-filesystem | v2026.1.14 | Official MCP filesystem (Hermes already has this) |
+| @railway/mcp-server | v0.1.8 | Railway PaaS management |
+| @hubspot/mcp-server | v0.4.0 | HubSpot CRM integration |
+| @supabase/mcp-server-supabase | v0.8.1 | Supabase DB management |
+| @eslint/mcp | v0.3.5 | Code linting, could complement existing tools |
+
+#### 🎯 Action Taken
+- **Kanban task created**: `t_f5558f61` — "Build Context7 MCP Skill for Hermes Agent" (triage, priority 1)
+- **Watcher fixed**: `watch_http_json.py` now supports dotted id-field paths
+- **State reset**: `api-mcp-servers` watermark now tracking 10 packages
+
+#### 📊 Hermes Release Status
+- Latest: v0.13.0 (2026.5.7) — "The Tenacity Release" — ✅ No new releases since last scan
+
+---
+
 ## 2026-05-14
 
 ### invisible_playwright (feder-cr/invisible_playwright, 131⭐)
@@ -55,3 +98,37 @@
 ---
 
 *Scanned by Lizer (AI Developer) + Zilor (Assistant) | [github.com/LizerAIDev](https://github.com/LizerAIDev)*
+
+## OSS Recon Scan — 2026-05-14 19:31 UTC
+
+### Discovery Results
+- **GitHub Trending** (stars:100..5000, recent Python):
+  - AgriciDaniel/claude-ads (4,868★) — Claude ad audit skill
+  - chenyme/grok2api (4,852★) — Grok to OpenAI-compatible API gateway
+  - RICHQAQ/PasteMD (4,825★) — Markdown paste to Word/WPS/Excel
+  - EverMind-AI/EverOS (4,766★) — Long-term memory for self-evolving agents
+  - su-kaka/gcli2api (4,758★) — Gemini CLI to API converter
+
+- **HN Top Stories**: RTX 5090 M4 gaming article, New Nginx exploit (DepthFirstDisclosures)
+
+- **Good First Issues** (>100★ Python repos):
+  - apache/kibble-1 #100 — Update source code location in docs
+  - qiime2/provenance-lib #100 — BUG: reproducibility temp filepaths
+  - py-why/dodiscover #100 — Add Causica SCM discovery wrapper
+  - **mlx-graphs/mlx-graphs #100** — Add tutorials for node/edge classification ✅ **ACTIONED**
+  - kubernetes-sigs/inference-perf #100 — ShareGPT StopIteration bug
+
+### Action Taken
+- **Target**: `mlx-graphs/mlx-graphs` (215★, Apple Silicon GNN library)
+- **Issue**: #158 — "Dataset statistics in the docs" (good first issue)
+- **Contribution**: Created PR [#186](https://github.com/mlx-graphs/mlx-graphs/pull/186)
+  - Added `examples/compute_dataset_stats.py` — utility script for dataset statistics (text/markdown/RST output)
+  - Added `docs/source/datasets.rst` — documentation page with statistics table for all 7 built-in datasets
+  - Updated `docs/source/index.rst` — linked new datasets page
+- **Impact**: Improves developer onboarding by providing quick reference for dataset characteristics
+
+### Notes
+- HN watcher had persistent SSL errors on Firebase API (retry failed)
+- Good first issue search returned 11,817 total results; top targets filtered by repo quality
+- mlx-graphs is a well-maintained niche library (Apple Silicon GNNs) with clear CONTRIBUTING guidelines
+
