@@ -380,3 +380,44 @@ Extended the npm search to 20 results. Found 9 MCP servers not yet tracked:
 - **Lazy-deps framework:** Could affect scripts that expect immediate availability of heavy packages
 - **Cross-session cache:** Only affects Claude models
 - **Verdict:** Low risk of breaking our current setup. Should upgrade after verifying cron job stability.
+
+---
+
+## 📡 OSS Recon Scan — 2026-05-16 19:30 UTC
+
+### Watchers Status
+- **GitHub new repos watcher**: All 10 top Python repos already known (mega-repos: public-apis, free-programming-books, system-design-primer, etc.) — no new items
+- **HN top stories watcher**: State file has 0 seen IDs but script filters out non-dict items (HN returns integer ID list) — watcher limitation, not new items
+
+### Trending Repos Discovered (via gh search)
+| Repo | ⭐ | Description | Actionable? |
+|------|---|-------------|-------------|
+| Swival/swival | 162 | CLI coding agent (open models) | Only 1 open issue, not actionable |
+| karanhudia/borg-ui | 1,463 | Borg Backup web UI | ✅ Yes — 37 open issues, active |
+| debpalash/OmniVoice-Studio | 2,254 | Voice cloning desktop app | 16 issues but complex Electron app |
+| rentruewang/aioway | — | RDBMS approach to deep learning | Niche, needs investigation |
+| DASDAE/dascore | — | Distributed fiber optic sensing | Domain-specific |
+
+### 🎯 Action Taken
+
+**Repo**: karanhudia/borg-ui (⭐1,463, Python/FastAPI + React)
+- **Issue targeted**: #201 — "Improve error handling and recovery UI for broken repositories"
+- **PR created**: [#485](https://github.com/karanhudia/borg-ui/pull/485)
+- **Changes**:
+  - Replaced `CommandBox` with `CopyableCommandBox` component
+  - Added copy-to-clipboard button (📋→✓) on all command preview blocks
+  - Uses `navigator.clipboard.writeText()` + `react-hot-toast` (existing deps)
+  - Added 2 unit tests for copy button presence
+  - 2 files changed, +109 lines, -27 lines
+
+### Notes
+- GitHub API rate limited on unauthenticated requests — used `gh` CLI with token
+- HN watcher has a bug: filters out non-dict items, but HN topstories returns a list of integers. Needs fix: `--id-field ""` doesn't work for ID-only lists.
+- The top-starred repos search is not useful for finding actionable repos (always returns the same mega-repos). Recommend switching to `stars:50..5000 pushed:>1week` for future scans.
+
+### 📊 Good First Issues Found
+- **862 total** open "good first issue" labeled Python issues found
+- Top candidate repos: `the_inventory` (37 issues, but 0 stars), `YATL`, `Cyni`
+- borg-ui has no "good first issue" labels but has well-scoped bugs/features
+
+---

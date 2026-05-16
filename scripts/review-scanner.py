@@ -69,7 +69,9 @@ def parse_kanban_stats() -> dict:
                     for p in parts[1:]:
                         if "=" in p:
                             k, v = p.split("=", 1)
-                            stats[section][assignee][k] = int(v)
+                            v_clean = v.rstrip(",;").strip()
+                            if v_clean.isdigit():
+                                stats[section][assignee][k] = int(v_clean)
     return stats
 
 
