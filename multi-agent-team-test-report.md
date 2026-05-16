@@ -227,9 +227,67 @@ Total Time: ~2 minutes
 
 ---
 
+## 测试 3: 多任务并行调度 / Multi-Task Parallel Dispatch
+
+> **测试日期**: 2026-05-17  
+> **状态**: ✅ 测试通过
+
+### 场景 / Scenario
+
+同时创建 4 个不同类型任务，验证 Dispatcher 并行分配，专家并行执行，Reviewer 并行审查
+
+**Create 4 tasks of different types simultaneously, verify parallel dispatch, parallel expert execution, parallel review**
+
+### 测试流程 / Test Flow
+
+#### Phase 1: 创建 4 个任务 ✅
+
+| 任务 ID | 标题 | 类型 | 分配专家 |
+|---------|------|------|----------|
+| t_39777c78 | Markdown 转 HTML | code | dev |
+| t_7f99277e | AI Agent 框架对比 | research | researcher |
+| t_a8c0ea1b | 日志分析工具 | code | dev |
+| t_3e86c1d4 | WebAssembly 边缘计算 | research | researcher |
+
+#### Phase 2: 专家并行执行 ✅
+
+**Dev 并行执行 2 个 code 任务:**
+- ✅ `md2html.py` - 6 个测试（标题/列表/链接/代码块/主题/空输入）
+- ✅ `log_analyzer.py` - 6 个测试（正则过滤/多模式/无匹配/统计/空输入/空统计）
+
+**Researcher 并行执行 2 个 research 任务:**
+- ✅ `ai-agents-comparison.md` - 5 框架对比（架构/易用性/扩展性/社区/性能）
+- ✅ `wasm-edge-computing.md` - WASM 边缘计算调研（3 运行时/4 场景/性能数据/5 趋势）
+
+#### Phase 3: Reviewer 并行审查 ✅
+
+| 任务 | 类型 | 审查结果 | 备注 |
+|------|------|----------|------|
+| t_39777c78 | code | ✅ 通过 | 6 测试，类型注解完整 |
+| t_7f99277e | research | ✅ 通过 | 5 框架 5 维度，数据支撑 |
+| t_a8c0ea1b | code | ✅ 通过 | 6 测试，类型注解完整 |
+| t_3e86c1d4 | research | ✅ 通过 | 3 运行时 4 场景，性能数据 |
+
+### 并行验证 / Parallel Validation
+
+| 检查点 | 预期 | 结果 |
+|--------|------|------|
+| Dispatcher 正确匹配类型标签 | ✅ | ✅ code→dev, research→researcher |
+| 专家可并行执行同类型任务 | ✅ | ✅ dev 同时做 2 个 code 任务 |
+| Reviewer 审查所有任务 | ✅ | ✅ 4 任务全部审查 |
+| 所有任务正确完成 | ✅ | ✅ 4 任务全部通过 |
+
+### 产出物
+- 📦 `md2html.py` + `test_md2html.py` (Markdown 转 HTML 工具)
+- 📦 `log_analyzer.py` + `test_log_analyzer.py` (日志分析工具)
+- 📄 `ai-agents-comparison.md` (AI Agent 框架对比)
+- 📄 `wasm-edge-computing.md` (WebAssembly 边缘计算调研)
+
+---
+
 ## 测试结论 / Conclusion
 
-### ✅ 全部测试通过
+### ✅ 全部 3 个测试通过
 
 多Agent团队模式的核心工作流程验证成功：
 
@@ -239,6 +297,7 @@ Total Time: ~2 minutes
 4. **审查验收**: Reviewer 正确审查并给出评价 ✅
 5. **拒绝重路由**: 专家拒绝 → Reviewer 确认 → 重新分配 → 完成 ✅
 6. **审查反馈循环**: 审查不通过 → 创建修改任务 → 专家修改 → 重新审查 → 通过 ✅
+7. **多任务并行**: 4 个任务并行调度，专家并行执行，Reviewer 并行审查 ✅
 
 ### 产出物
 - 📄 设计文档: `/root/projects/lizer-log/multi-agent-team-design.md`
