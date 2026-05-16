@@ -556,6 +556,104 @@
             </div>
         </section>
 
+        <!-- Smart Dispatch Strategy -->
+        <section>
+            <h2 style="color: var(--purple); margin-bottom: 1rem;">🧠 智能调度策略 / Smart Dispatch Strategy</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                2026-05-16 新增：负载均衡、优先级排序、依赖管理三大核心能力<br>
+                <em>Added 2026-05-16: Load Balancing, Priority Sorting, Dependency Management</em>
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <!-- Load Balancing -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;">
+                    <h4 style="color: var(--green); margin-bottom: 0.5rem;">⚖️ 负载均衡 / Load Balancing</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                        根据专家当前工作负载分配任务，避免单点过载
+                    </p>
+                    <div style="font-family: monospace; font-size: 0.85rem; background: var(--surface2); padding: 1rem; border-radius: 4px;">
+                        <div style="color: var(--green);">✅ dev:    running=0 (done=8)</div>
+                        <div style="color: var(--text-muted);">⬜ researcher: running=0 (done=3)</div>
+                        <div style="color: var(--text-muted);">⬜ writer: running=0 (done=0)</div>
+                        <div style="color: var(--text-muted);">⬜ designer: running=0 (done=0)</div>
+                        <div style="margin-top: 0.5rem; color: var(--accent);">→ Assign to: dev (lowest load)</div>
+                    </div>
+                </div>
+
+                <!-- Priority -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;">
+                    <h4 style="color: var(--orange); margin-bottom: 0.5rem;">🔥 优先级排序 / Priority</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                        高优先级任务优先处理，同优先级按创建时间 FIFO
+                    </p>
+                    <div style="font-family: monospace; font-size: 0.85rem; background: var(--surface2); padding: 1rem; border-radius: 4px;">
+                        <div style="color: var(--red);">🔴 [high]   API Rate Limiter (15:52)</div>
+                        <div style="color: var(--orange);">🟡 [medium] Integration Tests (15:53)</div>
+                        <div style="color: var(--green);">🟢 [low]   Rust Async Trends (15:53)</div>
+                        <div style="margin-top: 0.5rem; color: var(--accent);">→ Process: high → medium → low</div>
+                    </div>
+                </div>
+
+                <!-- Dependencies -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;">
+                    <h4 style="color: var(--accent); margin-bottom: 0.5rem;">🔗 依赖管理 / Dependencies</h4>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                        检查任务依赖链，未满足时延迟调度，完成后自动提升
+                    </p>
+                    <div style="font-family: monospace; font-size: 0.85rem; background: var(--surface2); padding: 1rem; border-radius: 4px;">
+                        <div style="color: var(--text);">Task: Integration Tests</div>
+                        <div style="color: var(--text-muted);">  parent: API Rate Limiter</div>
+                        <div style="margin-top: 0.5rem; color: var(--red);">⏸️  BLOCKED: parent=ready</div>
+                        <div style="margin-top: 0.5rem; color: var(--green);">✅ PROMOTE: parent=done → ready</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dispatch Flow -->
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;">
+                <h4 style="color: var(--accent); margin-bottom: 1rem;">📊 调度流程 / Dispatch Flow</h4>
+                <div style="font-family: monospace; font-size: 0.85rem; background: var(--surface2); padding: 1.5rem; border-radius: 4px; line-height: 2;">
+                    <div style="color: var(--purple);">Cron (every 30m)</div>
+                    <div style="color: var(--text-muted);">  ↓</div>
+                    <div style="color: var(--accent);">dispatch-scanner.py → JSON Report</div>
+                    <div style="color: var(--text-muted);">  ↓</div>
+                    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                        <div>
+                            <span style="color: var(--green);">├─ dispatch</span><br>
+                            <span style="color: var(--text-muted); margin-left: 1rem;">claim TASK_ID --profile PROFILE</span>
+                        </div>
+                        <div>
+                            <span style="color: var(--orange);">├─ promote_and_dispatch</span><br>
+                            <span style="color: var(--text-muted); margin-left: 1rem;">todo deps met → claim</span>
+                        </div>
+                        <div>
+                            <span style="color: var(--red);">└─ wait_for_deps</span><br>
+                            <span style="color: var(--text-muted); margin-left: 1rem;">skip until parent completes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expert Capacity -->
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem;">
+                <h4 style="color: var(--accent); margin-bottom: 1rem;">👥 专家容量规则 / Expert Capacity Rules</h4>
+                <ul style="list-style: none; font-size: 0.9rem;">
+                    <li style="margin-bottom: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--surface2);">
+                        <span style="color: var(--green);">✅</span> 同专家可并行处理多任务 (已验证)
+                        <br><span style="color: var(--text-muted); font-size: 0.8rem;">Same expert can handle multiple tasks in parallel (verified)</span>
+                    </li>
+                    <li style="margin-bottom: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--surface2);">
+                        <span style="color: var(--orange);">⚠️</span> 软限制：3+ running 任务时触发负载均衡警告
+                        <br><span style="color: var(--text-muted); font-size: 0.8rem;">Soft limit: 3+ running tasks triggers load balancing warning</span>
+                    </li>
+                    <li>
+                        <span style="color: var(--accent);">ℹ️</span> 单专家类型（如 code→dev）忽略容量限制
+                        <br><span style="color: var(--text-muted); font-size: 0.8rem;">Single-expert types (e.g., code→dev) ignore capacity limit</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
         <footer>
             <p>Powered by <a href="https://hermes-agent.nousresearch.com" target="_blank">Hermes Agent</a> | Building open source daily 🚀</p>
             <p style="margin-top: 0.5rem;">设计文档: <code>/root/projects/lizer-log/multi-agent-team-design.md</code></p>
