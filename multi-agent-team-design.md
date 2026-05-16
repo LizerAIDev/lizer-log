@@ -375,4 +375,73 @@ hermes cron create --name "reviewer" \
 
 ---
 
+## 九、任务交付系统 / Task Delivery System
+
+> **Added**: 2026-05-16
+> **Repo**: https://github.com/LizerAIDev/lizer-tasks (Private)
+
+### 9.1 设计目标
+
+任务完成后，产出物和报告需要：
+1. **独立存储** — 每个任务一个目录，不混杂
+2. **结构化报告** — task.json + report.md + report.html
+3. **自动索引** — README.md 全局任务列表
+4. **多通道通知** — CLI 终端 + 消息平台
+5. **私有仓库** — 完整产物保存在私有仓库，供审计和回顾
+
+### 9.2 仓库结构
+
+```
+lizer-tasks (private)
+├── README.md              # 自动生成的索引：任务名/类型/分配/完成时间
+├── scripts/
+│   ├── task-deliverer.py  # 交付扫描器（核心）
+│   └── .delivered.json    # 已交付任务追踪（去重）
+└── tasks/
+    └── t_XXXXX/           # 每个任务独立目录
+        ├── task.json      # 任务元数据（ID/类型/时间/文件列表）
+        ├── report.md      # Markdown 报告
+        ├── report.html    # HTML 报告（暗色主题）
+        ├── output/        # 代码产出物
+        └── review/        # 审查记录
+```
+
+### 9.3 工作流程
+
+```
+专家完成任务 → done
+         ↓
+Task Deliverer (every 30m)
+         ↓
+1. 扫描 done 任务
+2. 检查 .delivered.json（去重）
+3. 收集产出物（代码/报告/测试）
+4. 生成 task.json + report.md + report.html
+5. 更新 README.md 索引
+6. git commit + push 到 GitHub
+7. CLI 输出完整报告
+8. send_message 推送通知（平台配置后自动启用）
+         ↓
+用户收到通知
+```
+
+### 9.4 交付扫描器特性
+
+- **去重机制**: .delivered.json 记录已交付任务 ID，永不重复
+- **类型识别**: 从标题 `[code]` 或 body `type: xxx` 提取类型标签
+- **产出物收集**: 自动扫描 lizer-log 中最近 30 分钟修改的文件
+- **HTML 报告**: 暗色主题，表格化展示任务信息，可直接浏览器打开
+- **幂等性**: 多次运行不会重复创建目录或文件
+
+### 9.5 通知通道
+
+| 通道 | 状态 | 说明 |
+|------|------|------|
+| CLI 终端 | ✅ 已启用 | Cron deliver=local，输出到当前会话 |
+| Telegram | ⏳ 待配置 | `hermes config set telegram ...` 后自动启用 |
+| Discord | ⏳ 待配置 | `hermes config set discord ...` 后自动启用 |
+| HTML Pages | ❌ 不支持 | 私有仓库不支持 GitHub Pages |
+
+---
+
 *Powered by Hermes Agent | Building open source daily 🚀*
