@@ -652,6 +652,39 @@
                     </li>
                 </ul>
             </div>
+
+            <!-- Task Delivery -->
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem;">
+                <h4 style="color: var(--accent); margin-bottom: 1rem;">📦 任务交付系统 / Task Delivery System</h4>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                    2026-05-16 新增：每任务独立目录 + 自动索引 + 多通道通知
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div style="background: var(--surface2); padding: 1rem; border-radius: 4px; font-size: 0.85rem;">
+                        <div style="color: var(--green); margin-bottom: 0.5rem;">✅ CLI 终端</div>
+                        <span style="color: var(--text-muted);">Cron deliver=local</span>
+                    </div>
+                    <div style="background: var(--surface2); padding: 1rem; border-radius: 4px; font-size: 0.85rem;">
+                        <div style="color: var(--orange); margin-bottom: 0.5rem;">⏳ 消息平台</div>
+                        <span style="color: var(--text-muted);">Telegram/Discord (待配置)</span>
+                    </div>
+                    <div style="background: var(--surface2); padding: 1rem; border-radius: 4px; font-size: 0.85rem;">
+                        <div style="color: var(--accent); margin-bottom: 0.5rem;">📁 私有仓库</div>
+                        <span style="color: var(--text-muted);">lizer-tasks (one dir/task)</span>
+                    </div>
+                </div>
+                <div style="font-family: monospace; font-size: 0.8rem; background: var(--surface2); padding: 1rem; border-radius: 4px; line-height: 1.8;">
+                    <span style="color: var(--purple);">任务完成 (done)</span><br>
+                    <span style="color: var(--text-muted);">  ↓ 每 30 分钟扫描</span><br>
+                    <span style="color: var(--accent);">task-deliverer.py</span><br>
+                    <span style="color: var(--text-muted);">  ↓ 收集产出物 + 生成报告 + 更新索引</span><br>
+                    <span style="color: var(--green);">git push → lizer-tasks</span>
+                    <span style="color: var(--text-muted);"> + send_message</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                    已交付: 15 个历史任务 | 仓库: <a href="https://github.com/LizerAIDev/lizer-tasks" target="_blank" style="color: var(--accent);">github.com/LizerAIDev/lizer-tasks</a>
+                </p>
+            </div>
         </section>
 
         <footer>
