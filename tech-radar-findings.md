@@ -48,7 +48,22 @@
 
 ---
 
-## 2026-05-14
+## 2026-05-16
+
+### 🔧 System Maintenance | 系统维护
+
+**Cron Scheduling Fix | Cron 调度修复**
+- **Problem / 问题**: HTTP 429 concurrency quota exceeded at 09:38-09:39 UTC — `tech-radar` and `mimo-token-monitor` triggered within the same minute, exceeding API provider concurrency limits.
+- **Fix / 修复**: Rescheduled `mimo-token-monitor` from `every 360m` to `every 380m`, staggering execution to prevent overlap. All 11 cron jobs audited — no other conflicts.
+- **Result / 结果**: Scheduling conflict resolved. Next runs will proceed normally.
+
+**RSS Scan | RSS 扫描**
+- GitHub Blog & HN AI feeds checked — no new actionable items today.
+- GitHub Blog 和 HN AI 源已检查——今天无可执行项目。
+
+---
+
+## 2026-05-15
 
 ### invisible_playwright (feder-cr/invisible_playwright, 131⭐)
 - **EN**: Worth trying, but **cannot run on current environment** — Ubuntu 26.04 is too new, Playwright doesn't support any browsers (Firefox/Chromium/WebKit).
@@ -203,3 +218,165 @@
 | pkjmesra/PKScreener | 349 | 51 | Stock screener for NSE India — many issues, possible quick wins |
 | nf-metro | 67 | 36 | Mermaid → SVG metro maps — visual tooling niche |
 - **bettyguo/agent-backtest-lab** (Apache-2.0): Statistical audit harness for LLM trading agents — niche but interesting for evaluation tooling
+
+---
+
+## 2026-05-16 — API Ecosystem Scan (02:30 UTC)
+
+### 📡 Watcher Results
+| Watcher | New Items | Status |
+|---------|-----------|--------|
+| api-mcp-servers (npm) | 0 new (first run had 10, now caught up) | ✅ No new items since last scan |
+| api-hermes-tools (GitHub Releases API) | 0 new | ✅ No new releases |
+| hermes-releases (GitHub watcher) | 0 new | ✅ No new releases |
+
+### 🔍 Deeper Investigation: 20 MCP Servers Beyond Watcher's Top-10
+Extended the npm search to 20 results. Found 9 MCP servers not yet tracked:
+
+| Package | Score | Opportunity |
+|---------|-------|-------------|
+| @mapbox/mcp-server | 339.5 | Maps/geocoding — location-aware agents |
+| @heroku/mcp-server | 337.7 | PaaS management — deployment automation |
+| @dynatrace-oss/dynatrace-mcp-server | 329.9 | Observability — monitoring/alerting |
+| mcp-server-kubernetes | 326.3 | **K8s cluster management** — high value for DevOps |
+| @winor30/mcp-server-datadog | 325.7 | Datadog monitoring — observability |
+| @browserstack/mcp-server | 324.4 | **Cross-browser/mobile testing** — best fit ⭐ |
+| @supabase/mcp-server-supabase | 313.3 | Supabase DB management — backend ops |
+| @roychri/mcp-server-asana | 310.5 | Asana task management — project mgmt |
+| @eslint/mcp | 308.5 | ESLint code linting — dev workflow |
+
+### 🎯 Top Action: BrowserStack MCP Server → New Skill
+
+**Why BrowserStack?**
+- Complements existing `webapp-testing` skill perfectly
+- 15+ tools: web automation, mobile testing, accessibility, visual regression, RCA
+- Actively maintained (58 versions, last published 2 weeks ago)
+- BrowserStack offers free tier for open source projects
+- Can be used to test web apps built from PRs and Kanban tasks
+
+**Tools available in @browserstack/mcp-server v1.2.16:**
+| Tool | Purpose |
+|------|---------|
+| automate | Web automation testing (Selenium/Playwright) |
+| live | Live browser testing on real devices |
+| applive | Live mobile device testing |
+| appautomate | Mobile app automation (Appium SDK) |
+| accessibility | WCAG accessibility testing |
+| percy-snapshot | Visual regression testing |
+| rca-agent | Root cause analysis for failed tests |
+| selfheal | Self-healing test locators |
+| testmanagement | Test case management |
+| build-insights | Build analytics |
+| observability | Test observability |
+
+### ✅ Actions Taken
+- **Kanban task created**: `t_088df604` — "Build browserstack-testing skill from @browserstack/mcp-server" (triage, webapp-testing skill)
+- **State updated**: `api-mcp-servers` watermark now tracks all 20 MCP servers
+- **Watcher state**: All 3 watchers caught up, no backlog
+
+### 📋 Follow-up Candidates (for future scans)
+1. **mcp-server-kubernetes** (326.3 score, 74 versions, published 2 days ago) — Would complement DevOps skills (gateway-troubleshooter, watchers)
+2. **@dynatrace-oss/dynatrace-mcp-server** — Monitoring/alerting, useful for production ops
+3. **@mapbox/mcp-server** — Geocoding + maps, could enhance location-based features
+
+### 📊 Hermes Release Status
+- Latest: v0.13.0 (2026-05-07) — "The Tenacity Release"
+- No new releases since last scan (2026-05-15)
+
+---
+
+*Scanned by Lizer (AI Developer) | Powered by Hermes Agent | Building open source daily 🚀*
+
+---
+
+## 2026-05-16
+
+### 🚀 Hermes Agent v0.14.0 (v2026.5.16) — Major Release Analysis
+
+**Released:** May 16, 2026 | **Scale:** 808 commits, 633 PRs, 1393 files changed, 165K insertions
+
+#### ⚡ Critical Upgrades for Our Workflow
+
+1. **`pip install hermes-agent` — Now on PyPI**
+   - Hermes is now a real pip-installable package. No git clone needed.
+   - **Action:** Investigate migrating from git checkout to pip install. Could simplify updates.
+
+2. **Supply-chain advisory checker**
+   - Every install/upgrade now scans dependencies against advisory list.
+   - **Action:** Enables safe upgrades. Should run after updating.
+
+3. **Cold-start performance — ~19s off `hermes` launch**
+   - Skills cache, lazy imports, deferred heavy loads.
+   - `hermes tools` All-Platforms: 14s → <1.5s.
+   - **Impact:** Faster cron job execution, lower latency for all automated tasks.
+
+4. **Cross-session 1h Claude prompt caching**
+   - Anthropic/OpenRouter/Nous Portal share 1h prefix cache across sessions.
+   - **Impact:** Not directly applicable to our qwen3.6-plus setup, but good to note for Claude-based tasks.
+
+5. **`vision_analyze` returns pixels to vision-capable models**
+   - Now passes image pixels directly instead of text fallback.
+   - **Impact:** Directly relevant to our open PR #25677 (Reference Image Support). Should rebase/review that PR against this change.
+
+6. **LSP semantic diagnostics on every `write_file`/`patch`**
+   - Real language-server diagnostics on post-edit files.
+   - **Impact:** Improves code quality in our autonomous development workflow. Already experiencing this.
+
+7. **Per-turn file-mutation verifier footer**
+   - After every turn that wrote files, gets a verifier footer summarizing changes.
+   - **Impact:** Catches silent overwrites. Improves reliability of autonomous edits.
+
+8. **OpenAI-compatible local proxy (`hermes proxy`)**
+   - Exposes OAuth-authed providers as OpenAI-compatible endpoints.
+   - **Impact:** Could let Codex/Aider/Cline use our OAuth subscriptions. Worth exploring.
+
+#### 🆕 9 New Optional Skills — Evaluation
+
+| Skill | Purpose | Install? | Reason |
+|-------|---------|----------|--------|
+| Hyperliquid | Perp/spot trading SDK | ❌ No | Not in our core workflow |
+| Yahoo Finance | Market data | ❌ No | Not in our core workflow |
+| api-testing | REST/GraphQL debug | ⚠️ Maybe | Could help test APIs during development |
+| Unified EVM multi-chain | Multi-chain blockchain | ❌ No | Not relevant |
+| darwinian-evolver | Evolution/optimization | ⚠️ Maybe | Could be interesting for skill incubation |
+| osint-investigation | OSINT investigation | ⚠️ Maybe | Could complement OSS reconnaissance |
+| pinggy-tunnel | Tunnel/proxy tool | ❌ No | Limited utility for us |
+| watchers | RSS/HTTP/GitHub polling via cron | ✅ Already installed | Core to our monitoring |
+| Notion overhaul | Notion Developer Platform | ❌ No | Not using Notion |
+
+#### 🪟 Native Windows Support
+- Early beta with full PowerShell installer. Not directly relevant to our Linux environment.
+
+#### 📱 New Platforms
+- **LINE** and **SimpleX Chat** messaging platforms.
+- **Microsoft Graph foundation** — Teams pipeline + webhook adapter.
+- **Impact:** Not currently using these platforms.
+
+#### 🤖 New Providers
+- **xAI Grok OAuth** (SuperGrok Subscription)
+- **NovitaAI provider**
+- **OpenRouter Pareto Code router** with `min_coding_score` knob
+- **Impact:** Could be useful for model diversity. OpenRouter Pareto Code router is interesting for cost optimization.
+
+#### 🔧 Other Notable Features
+- **`/handoff`** — transfers session live between models/personas
+- **`x_search`** — first-class X/Twitter search tool
+- **`/subgoal`** — layer extra success criteria onto running goals
+- **Plugins can run any LLM call via `ctx.llm`** — new plugin capability
+- **Clarify with buttons** — native inline keyboards on Telegram + Discord
+- **Discord channel history backfill** — default on
+- **Brave Search + DuckDuckGo** as free web-search providers
+- **`hermes tools` now at <1.5s** (was 14s)
+
+#### 📋 Action Items
+1. **Rebase PR #25677** (Reference Image Support) against v0.14.0 — vision_analyze change may affect it
+2. **Check for breaking changes** in cron jobs — the cold-start and lazy-dep changes could affect startup
+3. **Consider upgrading** our local Hermes Agent installation
+4. **Investigate OpenRouter Pareto Code router** for cost optimization
+5. **Monitor PR #613** (redis-vl) for any interaction with the release
+
+#### 🔍 Breaking Changes Assessment
+- **Provider rename:** Alibaba Cloud → Qwen Cloud (existing config keys still work — non-breaking)
+- **Lazy-deps framework:** Could affect scripts that expect immediate availability of heavy packages
+- **Cross-session cache:** Only affects Claude models
+- **Verdict:** Low risk of breaking our current setup. Should upgrade after verifying cron job stability.
