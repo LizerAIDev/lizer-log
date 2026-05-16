@@ -477,9 +477,79 @@ Total Time: ~2 minutes
 
 ---
 
+## 测试 6: Cron 自动化调度 / Cron Automation Setup
+
+> **测试日期**: 2026-05-17  
+> **状态**: ✅ 已部署
+
+### 场景 / Scenario
+
+设置 3 个 Cron Jobs 实现全自动的 Kanban 任务流转，无需人工干预。
+
+**Set up 3 Cron Jobs for fully automated Kanban task flow without manual intervention.**
+
+### Cron Jobs 配置
+
+| Job ID | 名称 | 频率 | 职责 | 下次执行 |
+|--------|------|------|------|----------|
+| 44081eea22a9 | multi-agent-dispatcher | every 30m | 轮询 ready 任务，匹配类型标签，分配专家 | 15:40 UTC |
+| 2924afe2c30d | multi-agent-reviewer | every 1h | 审查 done 任务，不通过时创建修改任务 | 16:10 UTC |
+| b05fdd3190f3 | multi-agent-coordinator | 0 22 * * * | 生成每日任务完成报告，更新 HTML 看板 | 22:00 UTC |
+
+### 自动化流程
+
+```
+[每 30 分钟] ┌─────────────────────────────────────────┐
+             │  multi-agent-dispatcher                 │
+             │  1. 扫描 Kanban ready 任务              │
+             │  2. 解析类型标签 (code/research/docs)   │
+             │  3. 匹配专家 (dev/researcher/writer)    │
+             │  4. hermes kanban claim TASK_ID         │
+             │  5. 报告: "任务已分配给 EXPERT"         │
+             └─────────────────────────────────────────┘
+
+[每 1 小时]   ┌─────────────────────────────────────────┐
+             │  multi-agent-reviewer                   │
+             │  1. 扫描 Kanban done 任务               │
+             │  2. 检查验收标准                        │
+             │  3. 通过 → comment "审查通过 ✅"        │
+             │  4. 不通过 → comment + 创建修改任务     │
+             │  5. 报告: "审查 X 个任务，通过 Y 个"    │
+             └─────────────────────────────────────────┘
+
+[每日 22:00]  ┌─────────────────────────────────────────┐
+             │  multi-agent-coordinator                │
+             │  1. 收集今日 done 任务                  │
+             │  2. 生成 Markdown 日报                  │
+             │  3. 更新 HTML 看板统计                  │
+             │  4. git commit + push                   │
+             │  5. 报告: "日报已写入"                  │
+             └─────────────────────────────────────────┘
+```
+
+### 验证点
+
+| 检查点 | 预期 | 结果 |
+|--------|------|------|
+| 3 个 Cron Jobs 创建成功 | ✅ | ✅ |
+| 频率配置正确 | ✅ | ✅ 30m / 1h / daily 22:00 |
+| 附加 kanban-worker skill | ✅ | ✅ 所有 Job 都包含 |
+| 工具集限制 (terminal, file) | ✅ | ✅ 避免不必要的工具调用 |
+| Prompt 自包含 | ✅ | ✅ 每个 Prompt 包含完整指令 |
+| 下次执行时间正确 | ✅ | ✅ 按预期调度 |
+
+### 优势
+
+1. **零人工干预**: 任务从创建到完成全自动流转
+2. **可扩展**: 新增专家只需添加 Profile 和类型标签映射
+3. **可观测**: 每个 Job 都有日志和输出
+4. **容错**: 专家拒绝 → Reviewer 重路由 → 自动重试
+
+---
+
 ## 测试结论 / Conclusion
 
-### ✅ 全部 5 个测试通过
+### ✅ 全部 6 个测试通过
 
 多Agent团队模式的核心工作流程验证成功：
 
@@ -492,6 +562,7 @@ Total Time: ~2 minutes
 7. **多任务并行**: 4 个任务并行调度，专家并行执行，Reviewer 并行审查 ✅
 8. **实际 Profile 运行**: Coordinator 确认需求 → Dev 按标准执行 → Reviewer 按标准审查 → Coordinator 汇总 ✅
 9. **专家 Profile 扩展**: 4 个新专家 Profile 创建完成，能力矩阵扩展至 9 个角色 ✅
+10. **Cron 自动化调度**: 3 个自动化 Cron Jobs 部署完成，实现零人工干预的任务流转 ✅
 
 ### 产出物
 - 📄 设计文档: `/root/projects/lizer-log/multi-agent-team-design.md`
