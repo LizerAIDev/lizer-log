@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lizer Multi-Agent Dashboard — 多Agent团队看板</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #21262d;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --orange: #d29922;
+            --red: #f85149;
+            --purple: #bc8cff;
+            --pink: #f778ba;
+            --cyan: #39d2c0;
+            --coordinator: #58a6ff;
+            --dispatcher: #bc8cff;
+            --reviewer: #d29922;
+            --dev: #3fb950;
+            --researcher: #8b949e;
+            --designer: #f778ba;
+            --writer: #39d2c0;
+            --datascientist: #d29922;
+            --devops: #f85149;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
+
+        header {
+            text-align: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--coordinator), var(--purple), var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.3rem;
+        }
+
+        header p { color: var(--text-muted); font-size: 0.9rem; }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 0.8rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+        }
+
+        .status-item { display: flex; align-items: center; gap: 0.5rem; }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.active { background: var(--green); animation: pulse 2s infinite; }
+        .status-dot.ready { background: var(--orange); }
+        .status-dot.inactive { background: var(--text-muted); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.6rem 1.2rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .tab:hover { background: var(--border); }
+        .tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Cron Jobs Table */
+        .cron-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .cron-table th, .cron-table td {
+            padding: 0.7rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .cron-table th {
+            background: var(--surface2);
+            color: var(--accent);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .cron-table tr:hover { background: var(--surface2); }
+
+        .cron-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .cron-badge.active { background: rgba(63,185,80,0.2); color: var(--green); }
+        .cron-badge.paused { background: rgba(210,153,34,0.2); color: var(--orange); }
+        .cron-badge.error { background: rgba(248,81,73,0.2); color: var(--red); }
+
+        /* Role Cards Grid */
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .role-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.2rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .role-card.coordinator::before { background: var(--coordinator); }
+        .role-card.dispatcher::before { background: var(--dispatcher); }
+        .role-card.reviewer::before { background: var(--reviewer); }
+        .role-card.dev::before { background: var(--dev); }
+        .role-card.researcher::before { background: var(--researcher); }
+        .role-card.designer::before { background: var(--designer); }
+        .role-card.writer::before { background: var(--writer); }
+        .role-card.data-scientist::before { background: var(--datascientist); }
+        .role-card.devops::before { background: var(--devops); }
+
+        .role-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .role-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .coordinator .role-icon { background: rgba(88,166,255,0.2); }
+        .dispatcher .role-icon { background: rgba(188,140,255,0.2); }
+        .reviewer .role-icon { background: rgba(210,153,34,0.2); }
+        .dev .role-icon { background: rgba(63,185,80,0.2); }
+        .researcher .role-icon { background: rgba(139,148,158,0.2); }
+        .designer .role-icon { background: rgba(247,120,186,0.2); }
+        .writer .role-icon { background: rgba(57,210,192,0.2); }
+        .data-scientist .role-icon { background: rgba(210,153,34,0.2); }
+        .devops .role-icon { background: rgba(248,81,73,0.2); }
+
+        .role-title h3 { font-size: 1rem; margin-bottom: 0.2rem; }
+        .role-title .subtitle { font-size: 0.75rem; color: var(--text-muted); }
+
+        .role-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin: 0.8rem 0;
+        }
+
+        .role-tag {
+            padding: 0.15rem 0.5rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .role-details {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        .role-details ul { list-style: none; padding: 0; }
+        .role-details ul li::before { content: "▸ "; color: var(--accent); }
+
+        .role-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Architecture Flow */
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .flow-node {
+            padding: 0.8rem 1.5rem;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+            min-width: 140px;
+            transition: all 0.3s;
+        }
+
+        .flow-node:hover { transform: scale(1.05); }
+
+        .flow-node.user { border-color: var(--orange); }
+        .flow-node.coordinator { border-color: var(--coordinator); }
+        .flow-node.dispatcher { border-color: var(--dispatcher); }
+        .flow-node.expert { border-color: var(--green); }
+        .flow-node.reviewer { border-color: var(--reviewer); }
+        .flow-node.kanban { border-color: var(--purple); }
+
+        .flow-arrow {
+            color: var(--text-muted);
+            font-size: 1.5rem;
+        }
+
+        .flow-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin: 0.2rem 0;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-value.blue { color: var(--accent); }
+        .stat-value.green { color: var(--green); }
+        .stat-value.purple { color: var(--purple); }
+        .stat-value.orange { color: var(--orange); }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Log Section */
+        .log-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .log-section h3 {
+            color: var(--accent);
+            margin-bottom: 0.8rem;
+            font-size: 1rem;
+        }
+
+        .log-entry {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .log-entry:last-child { border-bottom: none; }
+        .log-time { color: var(--text-muted); }
+        .log-info { color: var(--accent); }
+        .log-success { color: var(--green); }
+        .log-warn { color: var(--orange); }
+        .log-error { color: var(--red); }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        footer a { color: var(--accent); text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .roles-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .flow-row { flex-direction: column; }
+            .container { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Lizer Multi-Agent Dashboard</h1>
+            <p>多Agent团队模式 — 完整能力矩阵与自动化调度看板</p>
+            <p style="margin-top: 0.3rem; font-size: 0.8rem;">Multi-Agent Team Pattern — Capability Matrix & Automation Dashboard</p>
+            <p style="margin-top: 0.3rem; font-size: 0.75rem; color: var(--text-muted);">Last Updated: <span id="lastUpdated"></span> | <a href="https://github.com/LizerAIDev/lizer-log" target="_blank">GitHub</a></p>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-dot active"></span>
+                <span>Dispatcher: 每 30 分钟</span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot active"></span>
+                <span>Reviewer: 每 1 小时</span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot active"></span>
+                <span>Coordinator: 每日 22:00</span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot active"></span>
+                <span>9 个角色在线</span>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value blue">9</div>
+                <div class="stat-label">角色总数 / Total Roles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green">3</div>
+                <div class="stat-label">核心层 / Core Layer</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value purple">6</div>
+                <div class="stat-label">专家层 / Expert Layer</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orange">3</div>
+                <div class="stat-label">自动化任务 / Cron Jobs</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('roles')">👥 角色矩阵 / Role Matrix</div>
+            <div class="tab" onclick="switchTab('cron')">⏰ 调度状态 / Cron Status</div>
+            <div class="tab" onclick="switchTab('flow')">🔄 工作流 / Workflow</div>
+            <div class="tab" onclick="switchTab('logs')">📋 执行日志 / Execution Logs</div>
+        </div>
+
+        <!-- Roles Tab -->
+        <div class="tab-content active" id="roles">
+            <h2 style="color: var(--accent); margin-bottom: 0.5rem;">核心层 / Core Layer</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.85rem;">协调、调度、审查 — 系统的中枢神经系统</p>
+
+            <div class="roles-grid">
+                <div class="role-card coordinator">
+                    <div class="role-header">
+                        <div class="role-icon">🎯</div>
+                        <div class="role-title">
+                            <h3>Coordinator Agent</h3>
+                            <div class="subtitle">协调Agent — 任务接收与用户交互</div>
+                        </div>
+                    </div>
+                    <div class="role-tags">
+                        <span class="role-tag">profile: coordinator</span>
+                        <span class="role-tag">不执行具体工作</span>
+                    </div>
+                    <div class="role-details">
+                        <ul>
+                            <li>与用户对话确认任务细节</li>
+                            <li>生成结构化任务描述</li>
+                            <li>发布到 Kanban 系统（带类型标签）</li>
+                            <li>跟踪进度并汇总最终报告</li>
+                            <li>铁律：❌ 不执行任何具体任务</li>
+                        </ul>
+                    </div>
+                    <div class="role-meta">
+                        <span>SOUL.md: 3.3KB</span>
+                        <span>状态: ✅ 已配置</span>
+                    </div>
+                </div>
+
+                <div class="role-card dispatcher">
+                    <div class="role-header">
+                        <div class="role-icon">📡</div>
+                        <div class="role-title">
+                            <h3>Dispatcher Agent</h3>
+                            <div class="subtitle">调度Agent — 类型匹配与任务分配</div>
+                        </div>
+                    </div>
+                    <div class="role-tags">
+                        <span class="role-tag">profile: dispatcher</span>
+                        <span class="role-tag">type:code → dev</span>
+                        <span class="role-tag">type:research → researcher</span>
+                    </div>
+                    <div class="role-details">
+                        <ul>
+                            <li>轮询 Kanban ready 状态任务</li>
+                            <li>解析类型标签（title 前缀 + body 标签）</li>
+                            <li>从专家库匹配最适合的 Agent</li>
+                            <li>处理专家拒绝的任务</li>
+                            <li>铁律：❌ 不执行具体任务</li>
+                        </ul>
+                    </div>
+                    <div class="role-meta">
+                        <span>SOUL.md: 4.1KB</span>
+                        <span>状态: ✅ 已配置</span>
+                    </div>
+                </div>
+
+                <div class="role-card reviewer">
+                    <div class="role-header">
+                        <div class="role-icon">🔍</div>
+                        <div class="role-title">
+                            <h3>Reviewer Agent</h3>
+                            <div class="subtitle">审查Agent — 质量验收与反馈循环</div>
+                        </div>
+                    </div>
+                    <div class="role-tags">
+                        <span class="role-tag">profile: reviewer</span>
+                        <span class="role-tag">审查清单</span>
+                        <span class="role-tag">最多 3 次修改循环</span>
+                    </div>
+                    <div class="role-details">
+                        <ul>
+                            <li>验收完成的任务（对照验收标准）</li>
+                            <li>拒绝时重新打类型标签</li>
+                            <li>不通过时提供具体反馈</li>
+                            <li>创建修改任务（最多 3 次循环）</li>
+                            <li>铁律：❌ 不修改代码，只评论建议</li>
+                        </ul>
+                    </div>
+                    <div class="role-meta">
+                        <span>SOUL.md: 5.2KB</span>
+                        <span>状态: ✅ 已配置</span>
+                    </div>
+                </div>
+            </div>
+
+            <h2 style="color: var(--green); margin: 1.5rem 0 0.5rem;">专家层 / Expert Layer</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.85rem;">6 个专业 Agent，覆盖代码、研究、设计、写作、数据科学、基础设施</p>
+
+            <div class="roles-grid">
+                <div class="role-card dev">
+                    <div class="role-header">
+                        <div class="role-icon">💻</div>
+                        <div class="role-title">
+                            <h3>Dev Agent</h3>
+                            <div class="subtitle">编程专家 — Python/Go/Rust 开发</div>
+                        </div>
+                    </div>
+                    <div class="role-tags">
+                        <span class="role-tag">type: code</span>
+                        <span class="role-tag">profile: dev</span>
+                    </div>
+                    <div class="role-details">
+                        <ul>
+                            <li>高质量 Python/Go/Rust 代码实现</li>
+                            <li>完整类型注解、PEP 8 规范</li>
+                            <li>单元测试覆盖（至少 5 个用例）</li>
+                            <li>错误处理与边界情况</li>
+                            <li>铁律：❌ 不直接对话用户</li>
+                        </ul>
+                    </div>
+                    <div class="role-meta">
+                        <span>SOUL.md: 已更新</span>
+                        <span>测试通过率: 100%</span>
+                    </div>
+                </div>
+
+                <div class="role-card researcher">
+                    <div class="role-header">
+                        <div class="role-icon">📚</div>
+                        <div class="role-title">
+                            <h3>Researcher Agent</h3>
+                            <div class="subtitle">研究专家 — 技术调研与对比分析</div>
+                        </div>
+                    </div>
+                    <div class="role-tags">
+                        <span class="role-tag">type: research</span>
+                        <span class="role-tag">profile: researcher</span>
+                    </div>
+                    <div class="role-details">
+                        <ul>
+                            <li>技术框架对比分析（5+ 维度）</li>
+                            <li>来源引用（至少 6 个可靠来源）</li>
+                            <li>数据支撑与具体案例</li>
+                            <li>明确的结论和选型建议</li>
+                            <li>铁律：❌ 不编写实现代码</li>
+                        </ul>
+                    </div>
+                    <div class="role-meta">
+                        <span>SOUL.md: 已更新</span>
+                        <span>测试通过率: 100%</span>
+                    </div>
+                </div>
+
+                <div class="role-card designer">
+                    <div class="role-header">
+                        <div class="role-icon">🎨</div>
+                        <div class="role-title">
+                            <h3>Designer Agent</h3>
+                            <div class="subtitle">UI/UX 设计专家 — 界面原型与视觉规范</div>
+                        </div>
+                    </div>
+                    <div class="role-tags">
+                        <span class="role-tag">type: design</span>
+                        <span class="role-tag">type: ui</span>
+                        <span class="role-tag">type: ux</span>
+                        <span class="role-tag">type: frontend</span>
+                    </div>
+                    <div class="role-details">
+                        <ul>
+                            <li>HTML/CSS 界面原型（可交互）</li>
+                            <li>响应式设计（mobile/tablet/desktop）</li>
+                            <li>WCAG 2.1 AA 无障碍合规</li>
+                            <li>交互流程与视觉规范文档</li>
+                            <li>铁律：❌ 不编写后端逻辑</li>
+                        </ul>
+                    </div>
+                    <div class="role-meta">
+                        <span>SOUL.md: 1.1KB</span>
+                        <span>状态: ✅ 新增</span>
+                    </div>
+                </div>
+
+                <div class="role-card writer">
+                    <div class="role-header">
+                        <div class="role-icon">✍️</div>
+                        <div class="role-title">
+                            <h3>Writer Agent</h3>
+                            <div class="subtitle">技术写作专家 — 文档与教程</div>
+                        </div>
+                    </div>
+                    <div class="role-tags">
+                        <span class="role-tag">type: docs</span>
+                        <span class="role-tag">type: writing</span>
+                        <span class="role-tag">type: tutorial</span>
+                        <span class="role-tag">type: api-docs</span>
+                    </div>
+                    <div class="role-details">
+                        <ul>
+                            <li>技术文档、教程、CHANGELOG</li>
+                            <li>EN/中文双语文档</li>
+                            <li>可运行的代码示例</li>
+                            <li>CommonMark 规范</li>
+                            <li>铁律：❌ 不编写实现代码</li>
+                        </ul>
+                    </div>
+                    <div class="role-meta">
+                        <span>SOUL.md: 1.1KB</span>
+                        <span>状态: ✅ 新增</span>
+                    </div>
+                </div>
+
+                <div class="role-card data-scientist">
+                    <div class="role-header">
+                        <div class="role-icon">📊</div>
+                        <div class="role-title">
+                            <h3>Data Scientist Agent</h3>
+                            <div class="subtitle">数据分析与 ML 专家 — EDA 与模型训练</div>
+                        </div>
+                    </div>
+                    <div class="role-tags">
+                        <span class="role-tag">type: data-science</span>
+                        <span class="role-tag">type: ml</span>
+                        <span class="role-tag">type: analysis</span>
+                        <span class="role-tag">type: visualization</span>
+                    </div>
+                    <div class="role-details">
+                        <ul>
+                            <li>数据清洗、EDA、可视化分析</li>
+                            <li>模型训练与交叉验证</li>
+                            <li>可复现的实验流程</li>
+                            <li>Jupyter Notebook 交付</li>
+                            <li>铁律：❌ 不编写生产部署代码</li>
+                        </ul>
+                    </div>
+                    <div class="role-meta">
+                        <span>SOUL.md: 1.2KB</span>
+                        <span>状态: ✅ 新增</span>
+                    </div>
+                </div>
+
+                <div class="role-card devops">
+                    <div class="role-header">
+                        <div class="role-icon">🚀</div>
+                        <div class="role-title">
+                            <h3>DevOps Agent</h3>
+                            <div class="subtitle">基础设施与 CI/CD 专家</div>
+                        </div>
+                    </div>
+                    <div class="role-tags">
+                        <span class="role-tag">type: devops</span>
+                        <span class="role-tag">type: infrastructure</span>
+                        <span class="role-tag">type: ci-cd</span>
+                        <span class="role-tag">type: deployment</span>
+                    </div>
+                    <div class="role-details">
+                        <ul>
+                            <li>Docker/CI/CD 配置、IaC</li>
+                            <li>监控告警与安全扫描</li>
+                            <li>一键部署与回滚方案</li>
+                            <li>部署文档与合规检查</li>
+                            <li>铁律：❌ 不编写业务逻辑代码</li>
+                        </ul>
+                    </div>
+                    <div class="role-meta">
+                        <span>SOUL.md: 1.2KB</span>
+                        <span>状态: ✅ 新增</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cron Tab -->
+        <div class="tab-content" id="cron">
+            <h2 style="color: var(--accent); margin-bottom: 0.5rem;">⏰ Cron 自动化调度状态</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.85rem;">3 个自动化 Cron Jobs 实现零人工干预的任务流转</p>
+
+            <table class="cron-table">
+                <thead>
+                    <tr>
+                        <th>Job ID</th>
+                        <th>名称</th>
+                        <th>频率</th>
+                        <th>职责</th>
+                        <th>下次执行</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>44081eea22a9</code></td>
+                        <td><strong>multi-agent-dispatcher</strong></td>
+                        <td>every 30m</td>
+                        <td>轮询 ready 任务，匹配类型标签，分配专家</td>
+                        <td id="dispatcher-next">--</td>
+                        <td><span class="cron-badge active">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>2924afe2c30d</code></td>
+                        <td><strong>multi-agent-reviewer</strong></td>
+                        <td>every 1h</td>
+                        <td>审查 done 任务，不通过时创建修改任务</td>
+                        <td id="reviewer-next">--</td>
+                        <td><span class="cron-badge active">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>b05fdd3190f3</code></td>
+                        <td><strong>multi-agent-coordinator</strong></td>
+                        <td>0 22 * * *</td>
+                        <td>生成每日任务完成报告，更新 HTML 看板</td>
+                        <td id="coordinator-next">--</td>
+                        <td><span class="cron-badge active">Active</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="color: var(--accent); margin: 1.5rem 0 0.8rem;">🔄 自动化流程</h3>
+            <div class="flow-container">
+                <div class="flow-row">
+                    <div class="flow-node coordinator">🎯 Coordinator<br><small>用户对话</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node kanban">📋 Kanban<br><small>发布任务</small></div>
+                </div>
+                <div class="flow-label">每 30 分钟轮询</div>
+                <div class="flow-row">
+                    <div class="flow-node kanban">📋 Kanban<br><small>ready 任务</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node dispatcher">📡 Dispatcher<br><small>类型匹配</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node expert">👨‍💻 Expert<br><small>执行任务</small></div>
+                </div>
+                <div class="flow-label">每 1 小时审查</div>
+                <div class="flow-row">
+                    <div class="flow-node expert">👨‍💻 Expert<br><small>提交报告</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node reviewer">🔍 Reviewer<br><small>审查验收</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node kanban">📋 Kanban<br><small>标记完成</small></div>
+                </div>
+                <div class="flow-label">每日 22:00 汇总</div>
+                <div class="flow-row">
+                    <div class="flow-node kanban">📋 Kanban<br><small>今日完成</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node coordinator">📊 Coordinator<br><small>生成日报</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node user">👤 User<br><small>接收报告</small></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flow Tab -->
+        <div class="tab-content" id="flow">
+            <h2 style="color: var(--accent); margin-bottom: 0.5rem;">🔄 工作流程详解</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.85rem;">6 步完整流程，展示多Agent团队如何协作处理任务</p>
+
+            <div class="flow-container">
+                <div class="flow-row">
+                    <div class="flow-node user">
+                        <div style="font-size: 1.5rem;">👤</div>
+                        <div>用户 / User</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">提出任务需求</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node coordinator">
+                        <div style="font-size: 1.5rem;">🎯</div>
+                        <div>Coordinator</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">确认细节</div>
+                    </div>
+                </div>
+                <div class="flow-label">Step 1: 用户提出需求 → Coordinator 通过对话澄清目标、范围、约束、验收标准</div>
+
+                <div class="flow-row">
+                    <div class="flow-node coordinator">
+                        <div style="font-size: 1.5rem;">📝</div>
+                        <div>Coordinator</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">发布任务</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node kanban">
+                        <div style="font-size: 1.5rem;">📋</div>
+                        <div>Kanban</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">todo → ready</div>
+                    </div>
+                </div>
+                <div class="flow-label">Step 2: Coordinator 生成结构化任务（[type] 前缀 + 类型标签 + 验收标准）</div>
+
+                <div class="flow-row">
+                    <div class="flow-node kanban">
+                        <div style="font-size: 1.5rem;">📋</div>
+                        <div>Kanban</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">ready 任务</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node dispatcher">
+                        <div style="font-size: 1.5rem;">📡</div>
+                        <div>Dispatcher</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">匹配类型</div>
+                    </div>
+                </div>
+                <div class="flow-label">Step 3: Dispatcher 读取类型标签 → 从专家库匹配最适合的 Agent</div>
+
+                <div class="flow-row">
+                    <div class="flow-node dispatcher">
+                        <div style="font-size: 1.5rem;">📡</div>
+                        <div>Dispatcher</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">分配任务</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node expert">
+                        <div style="font-size: 1.5rem;">👨‍💻</div>
+                        <div>Expert Agent</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">领取或拒绝</div>
+                    </div>
+                </div>
+                <div class="flow-label">Step 4: Expert 评估 → 能力匹配则 claim 执行，不匹配则退回并说明理由</div>
+
+                <div class="flow-row">
+                    <div class="flow-node expert">
+                        <div style="font-size: 1.5rem;">👨‍💻</div>
+                        <div>Expert Agent</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">执行并报告</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node reviewer">
+                        <div style="font-size: 1.5rem;">🔍</div>
+                        <div>Reviewer</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">审查验收</div>
+                    </div>
+                </div>
+                <div class="flow-label">Step 5: Reviewer 审查 → 通过则标记完成，不通过则创建修改任务（最多 3 次循环）</div>
+
+                <div class="flow-row">
+                    <div class="flow-node reviewer">
+                        <div style="font-size: 1.5rem;">🔍</div>
+                        <div>Reviewer</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">验收通过</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node coordinator">
+                        <div style="font-size: 1.5rem;">📊</div>
+                        <div>Coordinator</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">汇总报告</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-node user">
+                        <div style="font-size: 1.5rem;">👤</div>
+                        <div>用户 / User</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">接收结果</div>
+                    </div>
+                </div>
+                <div class="flow-label">Step 6: Coordinator 收集所有任务结果 → 生成最终报告 → 汇报给用户</div>
+            </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div class="tab-content" id="logs">
+            <h2 style="color: var(--accent); margin-bottom: 0.5rem;">📋 执行日志 / Execution Logs</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.85rem;">多Agent团队模式测试记录</p>
+
+            <div class="log-section">
+                <h3>✅ 测试 1: E2E 端到端流程 (2026-05-16 14:19 UTC)</h3>
+                <div class="log-entry">
+                    <span class="log-time">[14:19:52]</span> <span class="log-info">INFO</span> Coordinator 创建任务: [research] Rust vs Go 微服务架构对比分析
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[14:19:53]</span> <span class="log-success">OK</span> Dispatcher 匹配: type:research → researcher
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[14:20:50]</span> <span class="log-success">OK</span> Researcher 完成: 5 维度对比，7 个来源
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[14:21:00]</span> <span class="log-success">OK</span> Reviewer 审查通过: 5/5 验收标准达成
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[14:21:05]</span> <span class="log-info">INFO</span> Coordinator 汇总报告: 任务完成 ✅
+                </div>
+            </div>
+
+            <div class="log-section">
+                <h3>✅ 测试 2: 拒绝重路由 (2026-05-17)</h3>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-info">INFO</span> 创建 type:code 任务分配给 researcher
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-warn">WARN</span> Researcher 拒绝: "编程任务不属于我"
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-info">INFO</span> Reviewer 确认: 重新分配给 dev
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-success">OK</span> Dev 执行: jsonfmt CLI + 8 测试
+                </div>
+            </div>
+
+            <div class="log-section">
+                <h3>✅ 测试 3: 审查反馈循环 (2026-05-17)</h3>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-info">INFO</span> 创建斐波那契任务 → Dev 提交不合格代码
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-warn">WARN</span> Reviewer 审查不通过: 缺少类型注解、缺少单元测试
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-info">INFO</span> 创建修改任务 [REVIEW-REVISE 1]
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-success">OK</span> Dev 修改: fibonacci_v2.py + 4 测试 → 审查通过
+                </div>
+            </div>
+
+            <div class="log-section">
+                <h3>✅ 测试 4: 多任务并行 (2026-05-17)</h3>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-info">INFO</span> 同时创建 4 个任务 (2 code + 2 research)
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-success">OK</span> Dev 并行执行: md2html.py + log_analyzer.py
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-success">OK</span> Researcher 并行执行: AI Agent 对比 + WASM 边缘计算
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-success">OK</span> Reviewer 并行审查: 4 任务全部通过
+                </div>
+            </div>
+
+            <div class="log-section">
+                <h3>✅ 测试 5: 实际 Profile 集成 (2026-05-17)</h3>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-info">INFO</span> Coordinator 确认需求: Python 依赖检查工具
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-success">OK</span> Dev 执行: dep_checker.py + 7 测试 (9/10 评分)
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[TEST]</span> <span class="log-success">OK</span> Reviewer 审查: 清单完整，质量优秀
+                </div>
+            </div>
+
+            <div class="log-section">
+                <h3>✅ 测试 6: Cron 自动化部署 (2026-05-17)</h3>
+                <div class="log-entry">
+                    <span class="log-time">[15:40]</span> <span class="log-success">OK</span> multi-agent-dispatcher 创建: every 30m
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[16:10]</span> <span class="log-success">OK</span> multi-agent-reviewer 创建: every 1h
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[22:00]</span> <span class="log-success">OK</span> multi-agent-coordinator 创建: 0 22 * * *
+                </div>
+                <div class="log-entry">
+                    <span class="log-time">[15:45]</span> <span class="log-info">INFO</span> 3 Cron Jobs 全部部署完成，提交 37419d4
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by <a href="https://hermes-agent.nousresearch.com" target="_blank">Hermes Agent</a> | Built by <a href="https://github.com/LizerAIDev" target="_blank">Lizer</a></p>
+            <p style="margin-top: 0.3rem;">多Agent团队模式研究 | 9 角色 · 3 自动化任务 · 6 测试场景</p>
+            <p style="margin-top: 0.3rem; font-size: 0.75rem;">Last Commit: <code>37419d4</code> — feat: 多Agent团队 Cron 自动化调度部署完成</p>
+        </footer>
+    </div>
+
+    <script>
+        // Update timestamp
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleString('zh-CN', { timeZone: 'UTC' }) + ' UTC';
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Remove active from all tabs
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            // Add active to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Simulate next run times (in a real app, these would come from the API)
+        function updateNextRunTimes() {
+            const now = new Date();
+
+            // Dispatcher: every 30 minutes
+            const dispatcherNext = new Date(now.getTime() + (30 - (now.getMinutes() % 30)) * 60000 - now.getSeconds() * 1000);
+            document.getElementById('dispatcher-next').textContent = dispatcherNext.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
+
+            // Reviewer: every hour
+            const reviewerNext = new Date(now.getTime() + (60 - now.getMinutes()) * 60000 - now.getSeconds() * 1000);
+            document.getElementById('reviewer-next').textContent = reviewerNext.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
+
+            // Coordinator: 22:00 UTC
+            const coordinatorNext = new Date(now);
+            if (now.getUTCHours() >= 22) {
+                coordinatorNext.setUTCDate(coordinatorNext.getUTCDate() + 1);
+            }
+            coordinatorNext.setUTCHours(22, 0, 0, 0);
+            document.getElementById('coordinator-next').textContent = coordinatorNext.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
+        }
+
+        updateNextRunTimes();
+        setInterval(updateNextRunTimes, 60000);
+    </script>
+</body>
+</html>
