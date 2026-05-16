@@ -413,9 +413,73 @@ Total Time: ~2 minutes
 
 ---
 
+## 测试 5: 专家 Profile 扩展 / Expert Profile Expansion
+
+> **测试日期**: 2026-05-17  
+> **状态**: ✅ 已完成
+
+### 场景 / Scenario
+
+创建 4 个新的专家 Profile，扩展多Agent团队的能力矩阵。
+
+**Create 4 new expert profiles to expand the multi-agent team capability matrix.**
+
+### 新增 Profile
+
+| Profile | 角色 | 核心职责 | 类型标签 |
+|---------|------|----------|----------|
+| `designer` | UI/UX 设计专家 | 界面原型、交互设计、视觉规范 | type: design, type: ui, type: ux, type: frontend |
+| `writer` | 技术写作专家 | 文档、教程、API 参考、CHANGELOG | type: docs, type: writing, type: tutorial, type: api-docs |
+| `data-scientist` | 数据分析与 ML 专家 | 数据清洗、模型训练、可视化、Jupyter | type: data-science, type: ml, type: analysis, type: visualization |
+| `devops` | 基础设施与 CI/CD 专家 | Docker、CI/CD、IaC、监控、安全 | type: devops, type: infrastructure, type: ci-cd, type: deployment |
+
+### 配置详情
+
+#### designer
+- **职责**: 创建 HTML/CSS 界面原型，设计交互流程，制定视觉规范
+- **标准**: 原型可交互、响应式设计 (mobile/tablet/desktop)、WCAG 2.1 AA 合规
+- **边界**: 不编写后端逻辑，不处理数据库或 API
+- **交付物**: HTML 文件 + 设计说明文档
+
+#### writer
+- **职责**: 技术文档、教程、CHANGELOG、代码注释优化
+- **标准**: 结构清晰、EN/中文双语、代码示例可运行、CommonMark 规范
+- **边界**: 不编写实现代码，不处理部署或 CI/CD
+- **交付物**: Markdown 文档 + 代码示例 + 术语表
+
+#### data-scientist
+- **职责**: 数据清洗、EDA、模型训练、可视化分析
+- **标准**: 可复现、数据验证、可视化清晰、交叉验证、指标完整
+- **边界**: 不编写生产部署代码，不处理前端界面
+- **交付物**: Jupyter Notebook + 数据文件 + 说明文档
+
+#### devops
+- **职责**: Docker/CI/CD 配置、IaC、监控告警、安全扫描
+- **标准**: 一键部署、安全合规、可观测性、部署文档、回滚方案
+- **边界**: 不编写业务逻辑代码，不处理前端界面
+- **交付物**: 配置文件 + 部署脚本 + 说明文档
+
+### 完整 Profile 矩阵
+
+| Profile | 角色 | 状态 |
+|---------|------|------|
+| `coordinator` | 协调Agent | ✅ |
+| `dispatcher` | 调度Agent | ✅ |
+| `reviewer` | 审查Agent | ✅ |
+| `dev` | 编程专家 | ✅ |
+| `researcher` | 研究专家 | ✅ |
+| `designer` | UI/UX 设计专家 | ✅ 新增 |
+| `writer` | 技术写作专家 | ✅ 新增 |
+| `data-scientist` | 数据分析与 ML 专家 | ✅ 新增 |
+| `devops` | 基础设施与 CI/CD 专家 | ✅ 新增 |
+
+**总计**: 9 个 Profile (5 核心 + 4 专家)
+
+---
+
 ## 测试结论 / Conclusion
 
-### ✅ 全部 4 个测试通过
+### ✅ 全部 5 个测试通过
 
 多Agent团队模式的核心工作流程验证成功：
 
@@ -427,6 +491,7 @@ Total Time: ~2 minutes
 6. **审查反馈循环**: 审查不通过 → 创建修改任务 → 专家修改 → 重新审查 → 通过 ✅
 7. **多任务并行**: 4 个任务并行调度，专家并行执行，Reviewer 并行审查 ✅
 8. **实际 Profile 运行**: Coordinator 确认需求 → Dev 按标准执行 → Reviewer 按标准审查 → Coordinator 汇总 ✅
+9. **专家 Profile 扩展**: 4 个新专家 Profile 创建完成，能力矩阵扩展至 9 个角色 ✅
 
 ### 产出物
 - 📄 设计文档: `/root/projects/lizer-log/multi-agent-team-design.md`
@@ -442,10 +507,11 @@ Total Time: ~2 minutes
 
 ### 下一步 / Next Steps
 1. ~~测试多任务并行调度~~ ✅ 已完成
-2. 创建更多专家 Profile（designer, writer, data-scientist, devops）
+2. ~~创建更多专家 Profile~~ ✅ 已完成 (9 个角色)
 3. 设置 Cron 自动化调度
 4. ~~实际 Profile 运行测试~~ ✅ 已完成
 5. 集成真实 Agent 对话流程（coordinator chat 模式）
+6. 创建 HTML 可视化看板（展示 9 个角色的能力矩阵）
 
 ---
 
