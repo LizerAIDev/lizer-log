@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Team — Lizer 多Agent团队模式</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #21262d;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --orange: #d29922;
+            --red: #f85149;
+            --purple: #bc8cff;
+            --coordinator: #58a6ff;
+            --dispatcher: #bc8cff;
+            --expert: #3fb950;
+            --reviewer: #d29922;
+            --user: #f0883e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--coordinator), var(--purple), var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        header p { color: var(--text-muted); font-size: 1rem; }
+
+        /* Architecture Diagram */
+        .arch-diagram {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .agent-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .agent-card .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .agent-card.coordinator .badge { background: var(--coordinator); color: #000; }
+        .agent-card.dispatcher .badge { background: var(--dispatcher); color: #000; }
+        .agent-card.expert .badge { background: var(--expert); color: #000; }
+        .agent-card.reviewer .badge { background: var(--reviewer); color: #000; }
+        .agent-card.user .badge { background: var(--user); color: #000; }
+
+        .agent-card h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+        .agent-card ul { list-style: none; padding: 0; }
+        .agent-card ul li { padding: 0.3rem 0; color: var(--text-muted); font-size: 0.9rem; }
+        .agent-card ul li::before { content: "→ "; color: var(--accent); }
+
+        /* Workflow Steps */
+        .workflow {
+            margin: 3rem 0;
+        }
+
+        .workflow h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .step {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .step:hover { border-color: var(--accent); background: var(--surface2); }
+        .step.active { border-color: var(--green); background: rgba(63,185,80,0.05); }
+
+        .step-num {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step.active .step-num { background: var(--green); color: #000; border-color: var(--green); }
+
+        .step-content h4 { margin-bottom: 0.3rem; }
+        .step-content p { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Interactive Demo */
+        .demo {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .demo h2 { color: var(--accent); margin-bottom: 1rem; }
+
+        .chat-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .message {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            max-width: 80%;
+        }
+
+        .message.user { background: rgba(240,136,62,0.15); border: 1px solid var(--user); margin-left: auto; }
+        .message.coordinator { background: rgba(88,166,255,0.15); border: 1px solid var(--coordinator); }
+        .message.system { background: rgba(139,148,158,0.15); border: 1px solid var(--text-muted); text-align: center; max-width: 100%; font-size: 0.85rem; }
+        .message.expert { background: rgba(63,185,80,0.15); border: 1px solid var(--expert); }
+        .message.reviewer { background: rgba(210,153,34,0.15); border: 1px solid var(--reviewer); }
+
+        .message .sender { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+
+        .demo-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .demo-controls input {
+            flex: 1;
+            padding: 0.8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .demo-controls button {
+            padding: 0.8rem 1.5rem;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .demo-controls button:hover { background: #79c0ff; }
+
+        /* Task Board */
+        .task-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .board-column {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .board-column h4 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .task-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .task-card .type-tag {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .type-code { background: rgba(88,166,255,0.2); color: var(--accent); }
+        .type-research { background: rgba(188,140,255,0.2); color: var(--purple); }
+        .type-design { background: rgba(63,185,80,0.2); color: var(--green); }
+
+        /* Profile Table */
+        .profile-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        .profile-table th, .profile-table td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .profile-table th {
+            background: var(--surface2);
+            color: var(--accent);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .profile-table tr:hover { background: var(--surface2); }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-dot.active { background: var(--green); }
+        .status-dot.ready { background: var(--orange); }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a { color: var(--accent); text-decoration: none; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .arch-diagram { grid-template-columns: 1fr; }
+            .task-board { grid-template-columns: 1fr 1fr; }
+            .container { padding: 1rem; }
+        }
+
+        /* Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .animating { animation: pulse 1s ease-in-out infinite; }
+
+        .arrow-connector {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Multi-Agent Team Mode</h1>
+            <p>Lizer 多Agent协作架构 — 协调 · 调度 · 专家 · 审查</p>
+            <p style="margin-top: 0.5rem; font-size: 0.85rem;">Research Prototype — 2026-05-16</p>
+        </header>
+
+        <!-- Architecture Overview -->
+        <section>
+            <h2 style="color: var(--accent); margin-bottom: 1rem;">📐 系统架构 / System Architecture</h2>
+            <div class="arch-diagram">
+                <div class="agent-card user">
+                    <span class="badge">用户</span>
+                    <h3>User / 用户</h3>
+                    <ul>
+                        <li>提出任务需求</li>
+                        <li>接收最终报告</li>
+                    </ul>
+                </div>
+                <div class="agent-card coordinator">
+                    <span class="badge">协调</span>
+                    <h3>Coordinator Agent</h3>
+                    <ul>
+                        <li>与用户对话确认细节</li>
+                        <li>生成结构化任务描述</li>
+                        <li>发布到任务系统（带标签）</li>
+                        <li>跟踪进度并汇报结果</li>
+                        <li><strong style="color: var(--red);">❌ 不执行具体任务</strong></li>
+                    </ul>
+                </div>
+                <div class="agent-card dispatcher">
+                    <span class="badge">调度</span>
+                    <h3>Dispatcher Agent</h3>
+                    <ul>
+                        <li>监听 ready 状态任务</li>
+                        <li>根据类型标签匹配专家</li>
+                        <li>分配任务给匹配的专家</li>
+                        <li>处理专家拒绝的任务</li>
+                        <li><strong style="color: var(--red);">❌ 不执行具体任务</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="arrow-connector">⬇️ 任务分配 Task Assignment ⬇️</div>
+
+            <div class="arch-diagram" style="grid-template-columns: 1fr 1fr 1fr;">
+                <div class="agent-card expert">
+                    <span class="badge">专家</span>
+                    <h3>Expert Agents</h3>
+                    <ul>
+                        <li>dev — 编程专家</li>
+                        <li>researcher — 研究专家</li>
+                        <li>designer — 设计专家</li>
+                        <li>writer — 写作专家</li>
+                        <li>✅ 可拒绝不匹配任务</li>
+                    </ul>
+                </div>
+                <div class="agent-card reviewer">
+                    <span class="badge">审查</span>
+                    <h3>Reviewer Agent</h3>
+                    <ul>
+                        <li>验收完成的任务</li>
+                        <li>拒绝时重新打标签</li>
+                        <li>不通过时反馈具体问题</li>
+                        <li>创建修改任务（最多3次）</li>
+                    </ul>
+                </div>
+                <div class="agent-card" style="border-color: var(--accent);">
+                    <span class="badge" style="background: var(--accent); color: #000;">系统</span>
+                    <h3>Kanban Task System</h3>
+                    <ul>
+                        <li>Hermes Kanban Board</li>
+                        <li>todo → ready → running → done</li>
+                        <li>类型标签: type:code, type:research...</li>
+                        <li>metadata 存储任务属性</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Workflow Steps -->
+        <section class="workflow">
+            <h2>🔄 工作流程 / Workflow</h2>
+
+            <div class="step" onclick="toggleStep(this)">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>用户提出任务 → Coordinator 确认细节</h4>
+                    <p>用户描述需求，Coordinator 通过对话澄清目标、范围、约束、验收标准。模糊任务必须追问清楚。</p>
+                </div>
+            </div>
+
+            <div class="step" onclick="toggleStep(this)">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>Coordinator 发布任务到 Kanban（todo → ready）</h4>
+                    <p>任务包含：标题（[type] 前缀）、详细描述、类型标签（type:code/research/design/writing）、验收标准。</p>
+                </div>
+            </div>
+
+            <div class="step" onclick="toggleStep(this)">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h4>Dispatcher 匹配类型 → 分配给专家</h4>
+                    <p>Dispatcher 读取任务类型标签，从专家库匹配最适合的 Agent。type:code → dev, type:research → researcher。</p>
+                </div>
+            </div>
+
+            <div class="step" onclick="toggleStep(this)">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h4>专家评估 → 领取或拒绝</h4>
+                    <p>✅ 能力匹配 → claim 任务 → 执行 → 提交报告<br>❌ 不匹配 → 退回系统，说明理由 → 触发 Reviewer 重新打标签</p>
+                </div>
+            </div>
+
+            <div class="step" onclick="toggleStep(this)">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <h4>Reviewer 审查验收</h4>
+                    <p>✅ 通过 → 标记完成 → 通知 Coordinator<br>❌ 不通过 → 写具体问题 → 创建修改任务 → 专家修改（最多3次循环）</p>
+                </div>
+            </div>
+
+            <div class="step" onclick="toggleStep(this)">
+                <div class="step-num">6</div>
+                <div class="step-content">
+                    <h4>Coordinator 汇总结果 → 汇报给用户</h4>
+                    <p>收集所有任务的执行结果、审查意见、产出物链接，生成最终报告。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Demo -->
+        <section class="demo">
+            <h2>💬 交互演示 / Interactive Demo</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">模拟多Agent团队协作处理一个任务。点击 "发送" 或按 Enter 开始。</p>
+
+            <div class="chat-box" id="chatBox">
+                <div class="message system">
+                    <div class="sender">系统</div>
+                    多Agent团队系统已就绪。请输入一个任务需求开始演示。
+                </div>
+            </div>
+
+            <div class="demo-controls">
+                <input type="text" id="userInput" placeholder="输入任务需求，如：帮我研究一下 Rust 和 Go 在微服务中的对比..." onkeypress="if(event.key==='Enter')sendMessage()">
+                <button onclick="sendMessage()">发送</button>
+            </div>
+        </section>
+
+        <!-- Profile Configuration -->
+        <section>
+            <h2 style="color: var(--accent); margin-bottom: 1rem;">⚙️ Profile 配置 / Profile Configuration</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">已创建的角色 Profile 及其状态：</p>
+            <table class="profile-table">
+                <thead>
+                    <tr>
+                        <th>Profile</th>
+                        <th>角色</th>
+                        <th>状态</th>
+                        <th>SOUL.md</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>coordinator</code></td>
+                        <td>协调Agent</td>
+                        <td><span class="status-dot ready"></span>已创建</td>
+                        <td>✅ 已配置</td>
+                    </tr>
+                    <tr>
+                        <td><code>dispatcher</code></td>
+                        <td>调度Agent</td>
+                        <td><span class="status-dot ready"></span>已创建</td>
+                        <td>✅ 已配置</td>
+                    </tr>
+                    <tr>
+                        <td><code>dev</code></td>
+                        <td>编程专家</td>
+                        <td><span class="status-dot active"></span>已有</td>
+                        <td>✅ 已更新</td>
+                    </tr>
+                    <tr>
+                        <td><code>researcher</code></td>
+                        <td>研究专家</td>
+                        <td><span class="status-dot active"></span>已有</td>
+                        <td>✅ 已更新</td>
+                    </tr>
+                    <tr>
+                        <td><code>reviewer</code></td>
+                        <td>审查Agent</td>
+                        <td><span class="status-dot ready"></span>已创建</td>
+                        <td>✅ 已配置</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Task Board Simulation -->
+        <section>
+            <h2 style="color: var(--accent); margin-bottom: 1rem;">📋 任务看板模拟 / Task Board Simulation</h2>
+            <div class="task-board">
+                <div class="board-column">
+                    <h4>📥 Todo</h4>
+                    <div class="task-card">
+                        <span class="type-tag type-code">type:code</span>
+                        <div>实现 JWT 认证中间件</div>
+                    </div>
+                </div>
+                <div class="board-column">
+                    <h4>⏳ Ready</h4>
+                    <div class="task-card">
+                        <span class="type-tag type-research">type:research</span>
+                        <div>Rust vs Go 微服务对比</div>
+                    </div>
+                </div>
+                <div class="board-column">
+                    <h4>🔧 Running</h4>
+                    <div class="task-card">
+                        <span class="type-tag type-design">type:design</span>
+                        <div>系统架构图 (SVG)</div>
+                        <div style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.3rem;">Assigned to: designer</div>
+                    </div>
+                </div>
+                <div class="board-column">
+                    <h4>✅ Done</h4>
+                    <div class="task-card">
+                        <span class="type-tag type-code">type:code</span>
+                        <div>Redis UNLINK 优化</div>
+                        <div style="color: var(--green); font-size: 0.75rem; margin-top: 0.3rem;">✅ Review passed</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Powered by <a href="https://hermes-agent.nousresearch.com" target="_blank">Hermes Agent</a> | Building open source daily 🚀</p>
+            <p style="margin-top: 0.5rem;">设计文档: <code>/root/projects/lizer-log/multi-agent-team-design.md</code></p>
+            <p>Skill: <code>multi-agent-team</code> (devops/multi-agent-team)</p>
+        </footer>
+    </div>
+
+    <script>
+        // Chat demo simulation
+        const chatFlow = [
+            { sender: 'user', text: '帮我研究一下 Rust 和 Go 在微服务架构中的对比分析' },
+            { sender: 'coordinator', text: '收到！让我确认一下任务细节：\n\n1. **研究范围**：是否需要包含性能基准测试数据？\n2. **对比维度**：除了性能，还需要对比生态、开发效率、部署复杂度吗？\n3. **输出格式**：需要 Markdown 报告还是 HTML 展示页？' },
+            { sender: 'user', text: '需要包含性能数据，对比生态和开发效率，输出 Markdown 报告' },
+            { sender: 'coordinator', text: '明白！任务已确认，正在发布到 Kanban...\n\n📋 **任务已创建**\n- 标题: [research] Rust vs Go 微服务对比分析\n- 类型: type:research\n- 分配: researcher (研究专家)\n- 状态: ready' },
+            { sender: 'system', text: '🔄 Dispatcher: 检测到 ready 任务 [research] → 匹配 researcher → 已分配' },
+            { sender: 'expert', text: '✅ 已领取任务，开始执行...\n\n1. 收集 Rust 微服务框架资料（Actix, Axum, Rocket）\n2. 收集 Go 微服务框架资料（Gin, Echo, go-kit）\n3. 对比性能基准数据\n4. 分析生态成熟度\n5. 评估开发效率' },
+            { sender: 'system', text: '⏳ 专家执行中...' },
+            { sender: 'expert', text: '✅ 任务完成！\n\n📄 报告已生成: `/root/projects/lizer-log/rust-vs-go-microservices.md`\n- 包含 12 个对比维度\n- 引用 8 个可靠来源\n- 有明确的结论和建议\n- 请求审查Agent验收' },
+            { sender: 'reviewer', text: '📋 开始审查...\n\n✅ 验收标准检查：\n- [x] 包含性能数据 → 有基准测试表格\n- [x] 对比生态 → 有框架生态分析\n- [x] 开发效率 → 有对比说明\n- [x] Markdown 格式 → 格式正确\n\n✅ **审查通过！** 任务质量优秀。' },
+            { sender: 'coordinator', text: '🎉 任务完成！\n\n**最终报告**：Rust vs Go 微服务对比分析已完成并通过审查。\n📄 查看报告: `/root/projects/lizer-log/rust-vs-go-microservices.md`\n\n需要我执行更多任务吗？' }
+        ];
+
+        let currentStep = 0;
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const chatBox = document.getElementById('chatBox');
+
+            if (currentStep === 0) {
+                // Start the demo flow
+                runDemo();
+                input.value = '';
+                input.disabled = true;
+                input.placeholder = '演示进行中...';
+            }
+        }
+
+        function runDemo() {
+            const chatBox = document.getElementById('chatBox');
+            let delay = 500;
+
+            chatFlow.forEach((msg, index) => {
+                setTimeout(() => {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `message ${msg.sender}`;
+
+                    let senderLabel = '';
+                    switch(msg.sender) {
+                        case 'user': senderLabel = '👤 User / 用户'; break;
+                        case 'coordinator': senderLabel = '🤵 Coordinator / 协调Agent'; break;
+                        case 'dispatcher': senderLabel = '📦 Dispatcher / 调度Agent'; break;
+                        case 'expert': senderLabel = '🔧 Expert / 专家Agent'; break;
+                        case 'reviewer': senderLabel = '🔍 Reviewer / 审查Agent'; break;
+                        case 'system': senderLabel = '⚙️ System'; break;
+                    }
+
+                    msgDiv.innerHTML = `<div class="sender">${senderLabel}</div>${msg.text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/`(.*?)`/g, '<code>$1</code>')}`;
+                    chatBox.appendChild(msgDiv);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    currentStep = index + 1;
+                }, delay);
+                delay += 1500;
+            });
+        }
+
+        function toggleStep(el) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            el.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
